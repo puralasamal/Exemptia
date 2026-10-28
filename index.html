@@ -1,0 +1,752 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2446d8">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<!-- APP:START  (installable app: icon, name, colours) -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#2446d8">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Exemptia">
+  <!-- APP:END -->
+</head>
+<body>
+<title>Exemptia</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@500;700&family=Lexend:wght@500;700;800&display=swap">
+<style>
+/* Exemptia styles.
+   Layout: one calm column on phones (graph-paper notebook), two columns on
+   wide screens (notes left, "heard in class" right). The privacy status pill
+   is pinned to the top on every screen; class controls are pinned to the bottom. */
+:root {
+  --paper: #f3f6f9;
+  --grid: rgba(36, 70, 216, 0.06);
+  --surface: #ffffff;
+  --surface-2: #eef2f8;
+  --ink: #141b2d;
+  --muted: #586179;
+  --line: #d9dfea;
+  --accent: #2446d8;
+  --accent-ink: #ffffff;
+  --accent-soft: rgba(36, 70, 216, 0.10);
+  --highlight: rgba(255, 220, 60, 0.75);
+  --live: #d42a37;
+  --paused: #9a5b00;
+  --paused-soft: rgba(214, 140, 20, 0.14);
+  --ended: #586179;
+  --ok: #1d7f54;
+  --danger: #b4232f;
+  --shadow: 0 1px 2px rgba(20, 27, 45, 0.06), 0 8px 24px rgba(20, 27, 45, 0.06);
+
+  --font-display: "Lexend", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  --r: 14px;
+  --gutter-l: max(16px, env(safe-area-inset-left, 0px));
+  --gutter-r: max(16px, env(safe-area-inset-right, 0px));
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0e1320; --grid: rgba(138, 162, 255, 0.06); --surface: #161d2e; --surface-2: #1d2539;
+    --ink: #e7ecf6; --muted: #9aa4ba; --line: #2a3350; --accent: #8aa2ff; --accent-ink: #0e1320;
+    --accent-soft: rgba(138, 162, 255, 0.14); --highlight: rgba(232, 200, 60, 0.38);
+    --live: #ff5c68; --paused: #f2a93b; --paused-soft: rgba(242, 169, 59, 0.14); --ended: #9aa4ba;
+    --ok: #4cc38a; --danger: #ff6b76; --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.25);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0e1320; --grid: rgba(138, 162, 255, 0.06); --surface: #161d2e; --surface-2: #1d2539;
+  --ink: #e7ecf6; --muted: #9aa4ba; --line: #2a3350; --accent: #8aa2ff; --accent-ink: #0e1320;
+  --accent-soft: rgba(138, 162, 255, 0.14); --highlight: rgba(232, 200, 60, 0.38);
+  --live: #ff5c68; --paused: #f2a93b; --paused-soft: rgba(242, 169, 59, 0.14); --ended: #9aa4ba;
+  --ok: #4cc38a; --danger: #ff6b76; --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.25);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { min-height: 100%; }
+body {
+  margin: 0;
+  background-color: var(--paper);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 24px 24px;
+  color: var(--ink);
+  font: 17px/1.55 var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+[hidden] { display: none !important; }
+h1, h2, h3 { font-family: var(--font-display); line-height: 1.15; margin: 0; text-wrap: balance; }
+button, input, select { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.small { font-size: 0.86rem; color: var(--muted); margin: 0; }
+.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.label, .eyebrow {
+  font-family: var(--font-mono); font-size: 0.72rem; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted);
+}
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow); }
+
+/* ---------- top bar + privacy indicator (never hidden) ---------- */
+body::before {
+  content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px);
+  z-index: 30; background: var(--surface);
+}
+.topbar {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
+  background: var(--surface); border-bottom: 1px solid var(--line);
+}
+.topbar-inner {
+  max-width: 1120px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding-block: 10px; padding-left: var(--gutter-l); padding-right: var(--gutter-r);
+}
+.brand-mini { font-family: var(--font-display); font-weight: 800; letter-spacing: -0.01em; }
+.status-pill {
+  display: inline-flex; align-items: center; gap: 8px; min-width: 0;
+  padding: 6px 12px; border-radius: 999px; border: 1.5px solid currentColor;
+  font-family: var(--font-mono); font-size: 0.74rem; font-weight: 700; letter-spacing: 0.05em;
+}
+.status-pill #statusText { white-space: normal; line-height: 1.25; }
+.tab-panel > *, .note-sec, .note-sec li { min-width: 0; }
+.status-pill .dot { width: 10px; height: 10px; border-radius: 50%; border: 2px solid currentColor; flex: none; }
+.status-pill.is-idle, .status-pill.is-ended { color: var(--ended); }
+.status-pill.is-active { color: var(--live); background: color-mix(in srgb, var(--live) 10%, transparent); }
+.status-pill.is-active .dot { background: currentColor; animation: pulse 1.4s ease-in-out infinite; }
+.status-pill.is-paused { color: var(--paused); background: var(--paused-soft); }
+@keyframes pulse { 50% { transform: scale(0.65); opacity: 0.55; } }
+
+.screen {
+  max-width: 1120px; margin: 0 auto;
+  padding-left: var(--gutter-l); padding-right: var(--gutter-r); padding-block: 28px 48px;
+}
+
+/* ---------- buttons ---------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 46px; padding: 10px 18px; border-radius: 12px; border: 1.5px solid transparent;
+  background: var(--accent); color: var(--accent-ink); font-family: var(--font-display); font-weight: 700;
+  cursor: pointer; transition: transform 0.08s ease, background 0.15s ease;
+}
+.btn:active { transform: translateY(1px); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-ghost { background: var(--surface); color: var(--ink); border-color: var(--line); }
+.btn-ghost:hover { border-color: var(--accent); }
+.btn-small { min-height: 38px; padding: 6px 14px; font-size: 0.9rem; }
+.btn-block { width: 100%; }
+.btn-danger { background: transparent; color: var(--danger); border-color: color-mix(in srgb, var(--danger) 45%, transparent); }
+.btn-start {
+  font-size: 1.25rem; letter-spacing: 0.06em; text-transform: uppercase; min-height: 60px; padding-inline: 34px;
+  box-shadow: 0 6px 0 color-mix(in srgb, var(--accent) 55%, #000), var(--shadow);
+}
+.btn-start:active { transform: translateY(4px); box-shadow: 0 2px 0 color-mix(in srgb, var(--accent) 55%, #000); }
+.icon-btn { background: none; border: 0; font-size: 1.8rem; line-height: 1; cursor: pointer; color: var(--muted); padding: 4px 8px; }
+
+/* ---------- home ---------- */
+.hero { display: grid; justify-items: start; gap: 14px; padding-block: 24px 36px; }
+.wordmark { font-size: clamp(3rem, 12vw, 5.6rem); font-weight: 800; letter-spacing: -0.04em; }
+.wordmark span {
+  background: linear-gradient(transparent 58%, var(--highlight) 58%, var(--highlight) 92%, transparent 92%);
+  padding-inline: 0.04em;
+}
+.tagline { font-size: 1.3rem; margin: 0 0 10px; color: var(--muted); }
+.privacy-line { display: flex; gap: 10px; align-items: flex-start; max-width: 46ch; margin: 8px 0 0; font-size: 0.95rem; color: var(--muted); }
+.privacy-line svg, .privacy-done svg { width: 20px; height: 20px; flex: none; fill: none; stroke: var(--ok); stroke-width: 2; margin-top: 2px; }
+.how { display: grid; gap: 20px; grid-template-columns: 1fr; }
+@media (min-width: 820px) { .how { grid-template-columns: 1.4fr 1fr; align-items: start; } }
+.steps { list-style: none; counter-reset: step; margin: 0; padding: 0; display: grid; gap: 12px; }
+.steps li {
+  counter-increment: step; display: grid; grid-template-columns: 40px 1fr; column-gap: 12px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 14px 16px;
+}
+.steps li::before {
+  content: counter(step); grid-row: span 2; width: 34px; height: 34px; border-radius: 50%;
+  display: grid; place-items: center; background: var(--accent-soft); color: var(--accent);
+  font-family: var(--font-display); font-weight: 800;
+}
+.steps b { font-family: var(--font-display); }
+.steps span { color: var(--muted); font-size: 0.95rem; }
+.never { padding: 18px; display: grid; gap: 12px; }
+.never h2 { font-size: 1.05rem; }
+.chips { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.chips li {
+  padding: 4px 10px; border-radius: 999px; border: 1px dashed var(--line); font-size: 0.88rem;
+  text-decoration: line-through; text-decoration-color: var(--danger); color: var(--muted);
+}
+
+/* ---------- class screen ---------- */
+#classScreen { padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px)); }
+.class-meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 14px; }
+.meta-chip { background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 4px 12px; font-size: 0.85rem; }
+.meta-small { font-size: 0.82rem; color: var(--muted); }
+.banner {
+  display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between;
+  border: 1.5px solid var(--paused); background: var(--paused-soft); border-radius: var(--r);
+  padding: 14px 16px; margin-bottom: 16px;
+}
+.banner div { display: grid; gap: 2px; min-width: 0; flex: 1 1 240px; }
+.banner span { font-size: 0.92rem; color: var(--muted); }
+.banner-error { border-color: var(--danger); background: color-mix(in srgb, var(--danger) 10%, transparent); display: block; }
+
+.class-grid { display: grid; gap: 18px; grid-template-columns: 1fr; }
+@media (min-width: 900px) { .class-grid { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); align-items: start; } }
+.notes-col, .feed-col { min-width: 0; }
+@media (max-width: 899px) {
+  .feed-col { order: -1; }           /* phones: what's being heard sits above the notes */
+  .feed-col .feed { max-height: 150px; }
+}
+.topic-card { padding: 4px 0 14px; display: grid; gap: 4px; }
+.topic-card h2 { font-size: clamp(1.6rem, 6vw, 2.3rem); font-weight: 800; letter-spacing: -0.02em; }
+
+.notes { display: grid; gap: 12px; }
+.note-sec {
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 14px 16px;
+  animation: rise 0.25s ease;
+}
+.note-sec h3 {
+  font-size: 0.95rem; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 8px;
+}
+.note-sec h3 .count { font-family: var(--font-mono); font-size: 0.75rem; color: var(--muted); font-weight: 500; }
+.note-sec ul { margin: 0; padding-left: 1.15em; display: grid; gap: 6px; }
+.note-sec li::marker { color: var(--accent); }
+.note-sec .empty { color: var(--muted); font-size: 0.92rem; font-style: italic; margin: 0; }
+.note-sec li.fresh { animation: flash 1.6s ease; border-radius: 4px; }
+@keyframes flash { from { background: var(--accent-soft); } to { background: transparent; } }
+@keyframes rise { from { opacity: 0.4; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+.term {
+  font-weight: 700;
+  background: linear-gradient(transparent 55%, var(--highlight) 55%, var(--highlight) 95%, transparent 95%);
+}
+.formula {
+  display: block; font-family: var(--font-mono); font-size: 0.92rem; background: var(--surface-2);
+  border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; margin-top: 4px;
+  white-space: normal; overflow-wrap: anywhere;
+}
+.formula-label { font-size: 0.86rem; color: var(--muted); }
+.note-sec ul.concepts { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; padding: 0 !important; }
+.concepts li { background: var(--accent-soft); color: var(--accent); border-radius: 999px; padding: 3px 11px; font-weight: 700; font-size: 0.9rem; }
+
+.feed-col { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 14px 16px; }
+@media (min-width: 900px) { .feed-col { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 70px); } }
+.feed-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 8px; }
+.feed-head h3 { font-size: 0.95rem; }
+.meter { width: 70px; height: 8px; border-radius: 99px; background: var(--surface-2); overflow: hidden; }
+.meter span { display: block; height: 100%; width: 0; background: var(--ok); transition: width 0.12s linear; }
+.feed { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; max-height: 340px; overflow-y: auto; font-size: 0.93rem; }
+.feed li { padding: 6px 8px 6px 26px; border-radius: 8px; position: relative; }
+.feed li::before { position: absolute; left: 7px; top: 6px; font-family: var(--font-mono); font-size: 0.8rem; }
+.feed li.kept::before { content: "✓"; color: var(--ok); }
+.feed li.skipped { color: var(--muted); font-style: italic; font-size: 0.85rem; }
+.feed li.skipped::before { content: "–"; color: var(--muted); }
+.interim { min-height: 1.5em; color: var(--muted); font-style: italic; margin: 6px 0; font-size: 0.93rem; }
+.skipped { border-top: 1px dashed var(--line); padding-top: 8px; }
+
+.actionbar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 15;
+  background: color-mix(in srgb, var(--surface) 94%, transparent); backdrop-filter: blur(8px);
+  border-top: 1px solid var(--line);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.actionbar-inner {
+  max-width: 1120px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1.6fr 1fr; gap: 10px;
+  padding-block: 12px; padding-left: var(--gutter-l); padding-right: var(--gutter-r);
+}
+.btn-doubt { min-height: 56px; font-size: 1.08rem; }
+.btn-end { background: var(--ink); color: var(--paper); }
+@media (max-width: 420px) { .actionbar-inner .btn { padding-inline: 10px; } }
+
+/* ---------- end screen ---------- */
+.end-head { display: grid; gap: 8px; margin-bottom: 20px; }
+.end-head h1 { font-size: clamp(1.9rem, 7vw, 3rem); font-weight: 800; letter-spacing: -0.03em; }
+.end-topic { font-family: var(--font-display); font-size: 1.2rem; margin: 0; }
+.end-topic span { background: linear-gradient(transparent 55%, var(--highlight) 55%, var(--highlight) 95%, transparent 95%); }
+.privacy-done { display: flex; gap: 8px; align-items: flex-start; }
+.tabs { display: flex; gap: 4px; overflow-x: auto; border-bottom: 1px solid var(--line); margin-bottom: 18px; scrollbar-width: none; }
+.tab {
+  background: none; border: 0; border-bottom: 3px solid transparent; padding: 10px 14px; cursor: pointer;
+  font-family: var(--font-display); font-weight: 700; color: var(--muted); white-space: nowrap;
+}
+.tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+.tab-panel { display: grid; gap: 12px; }
+.summary-lead { font-size: 1.1rem; max-width: 65ch; margin: 0; }
+.points { counter-reset: pt; list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+.points li { counter-increment: pt; display: grid; grid-template-columns: 30px 1fr; gap: 8px; }
+.points li::before { content: counter(pt); font-family: var(--font-mono); font-weight: 700; color: var(--accent); }
+.qa { display: grid; gap: 8px; }
+.qa .q { font-family: var(--font-display); font-weight: 700; }
+.revise-item { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: baseline; }
+.revise-item b { font-family: var(--font-display); }
+.tag { font-family: var(--font-mono); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent); }
+.practice-card { display: grid; gap: 8px; }
+.answer { border-left: 3px solid var(--ok); padding-left: 10px; margin: 0; }
+.end-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+.toast { min-height: 1.4em; color: var(--ok); font-size: 0.92rem; }
+.confirm-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+/* ---------- sheets (bottom sheet on phones, centred dialog on desktop) ---------- */
+.sheet { position: fixed; inset: 0; z-index: 40; display: grid; align-items: end; }
+.sheet-backdrop { position: absolute; inset: 0; background: rgba(10, 14, 24, 0.5); }
+.sheet-panel {
+  position: relative; background: var(--surface); width: 100%; max-height: 92vh; overflow-y: auto;
+  border-radius: 20px 20px 0 0; display: grid; gap: 16px;
+  padding-block: 18px calc(18px + env(safe-area-inset-bottom, 0px));
+  padding-left: var(--gutter-l); padding-right: var(--gutter-r);
+  animation: up 0.2s ease;
+}
+@media (min-width: 720px) {
+  .sheet { align-items: center; justify-items: center; }
+  .sheet-panel { width: min(560px, 92vw); border-radius: 20px; padding: 24px; }
+}
+@keyframes up { from { transform: translateY(24px); opacity: 0.6; } }
+.sheet-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.sheet-head h2 { font-size: 1.3rem; }
+.options { border: 0; padding: 0; margin: 0; display: grid; gap: 10px; }
+.option {
+  display: grid; grid-template-columns: 22px 1fr; gap: 12px; align-items: start;
+  border: 1.5px solid var(--line); border-radius: var(--r); padding: 12px 14px; cursor: pointer;
+}
+.option:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
+.option:has(input:disabled) { opacity: 0.55; cursor: not-allowed; }
+.option input { margin-top: 4px; accent-color: var(--accent); width: 18px; height: 18px; }
+.option-body { display: grid; gap: 2px; }
+.option-body span { color: var(--muted); font-size: 0.92rem; }
+.option-note { font-size: 0.82rem; color: var(--paused); font-style: normal; }
+.connect { display: grid; gap: 8px; }
+.connect-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.setting { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 0.95rem; }
+.setting select { padding: 6px 10px; border-radius: 10px; border: 1.5px solid var(--line); background: var(--surface); }
+.consent { display: grid; grid-template-columns: 22px 1fr; gap: 10px; font-size: 0.95rem; }
+.consent input { width: 18px; height: 18px; accent-color: var(--accent); margin-top: 3px; }
+
+.doubt-panel { max-height: 88vh; grid-template-rows: auto 1fr auto auto; }
+.thread { display: grid; gap: 12px; overflow-y: auto; min-height: 120px; }
+.thread .empty { color: var(--muted); margin: 0; }
+.bubble-q {
+  justify-self: end; max-width: 85%; background: var(--accent); color: var(--accent-ink);
+  border-radius: 16px 16px 4px 16px; padding: 8px 14px;
+}
+.bubble-a { background: var(--surface-2); border-radius: 16px 16px 16px 4px; padding: 12px 14px; display: grid; gap: 8px; max-width: 95%; }
+.bubble-a p { margin: 0; }
+.bubble-a .part { display: grid; gap: 2px; }
+.bubble-a blockquote { margin: 0; border-left: 3px solid var(--accent); padding-left: 10px; color: var(--muted); font-size: 0.92rem; }
+.thinking { color: var(--muted); font-style: italic; }
+.suggestions { display: flex; gap: 8px; flex-wrap: wrap; }
+.suggestions button {
+  background: var(--surface); border: 1.5px dashed var(--line); border-radius: 999px; padding: 5px 12px;
+  font-size: 0.88rem; cursor: pointer; text-align: left;
+}
+.suggestions button:hover { border-color: var(--accent); }
+.doubt-form { display: flex; gap: 8px; }
+.doubt-form input {
+  flex: 1; min-width: 0; padding: 12px 14px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--paper);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *:not(.splash), *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+/* ---------- meeting-app picker (any app works; this sets tips + official connection) ---------- */
+.app-pick { border: 0; padding: 0; margin: 0; display: grid; gap: 10px; }
+.app-pick legend { padding: 0; margin-bottom: 8px; }
+.app-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.app-chip { cursor: pointer; }
+.app-chip input { position: absolute; opacity: 0; pointer-events: none; }
+.app-chip span {
+  display: inline-block; padding: 7px 14px; border-radius: 999px; border: 1.5px solid var(--line);
+  background: var(--surface); font-weight: 700; font-size: 0.92rem;
+}
+.app-chip input:checked + span { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
+.app-chip input:focus-visible + span { outline: 3px solid var(--accent); outline-offset: 2px; }
+.app-tip { color: var(--ink); }
+
+/* ---------- type / dictate your own lesson ---------- */
+.text-entry {
+  display: grid; gap: 8px; background: var(--surface); border: 1.5px solid var(--accent);
+  border-radius: var(--r); padding: 14px 16px; margin-bottom: 18px;
+}
+.text-entry textarea {
+  width: 100%; min-height: 110px; resize: vertical; padding: 12px 14px; border-radius: 12px;
+  border: 1.5px solid var(--line); background: var(--paper); color: var(--ink); font: inherit;
+}
+.text-entry textarea:disabled { opacity: 0.6; }
+.text-entry-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; }
+.text-entry-row .small { flex: 1 1 200px; }
+.ai-badge {
+  display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px;
+  background: var(--accent-soft); color: var(--accent); font-family: var(--font-mono); font-size: 0.72rem;
+  font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+}
+
+/* Typing/speaking mode: notes go straight under the text box */
+.mode-text .feed-col { display: none; }
+.mode-text .class-grid { grid-template-columns: 1fr; }
+
+/* ---------- install prompt ---------- */
+.install { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; padding: 16px 18px; }
+.install div { display: grid; gap: 2px; min-width: 0; flex: 1 1 220px; }
+.install b { font-family: var(--font-display); }
+#appLinks a { color: var(--accent); }
+
+/* ---------- founder credit (bottom of home and notes screens) ---------- */
+.credit {
+  margin-top: 36px; padding-top: 18px; border-top: 1px dashed var(--line);
+  display: grid; justify-items: center; gap: 2px; text-align: center; color: var(--muted); font-size: 0.9rem;
+}
+.credit-app { font-family: var(--font-display); font-weight: 800; color: var(--ink); letter-spacing: -0.01em; }
+.credit b { color: var(--ink); }
+
+/* ---------- opening screen (splash) ----------
+   Vibrant full-screen blue with the app icon and name, then fades into the app. */
+.splash { display: none; }
+.show-splash .splash {
+  position: fixed; inset: 0; z-index: 100; display: grid; place-items: center;
+  background: radial-gradient(120% 80% at 50% 30%, #3d63ff 0%, #2446d8 45%, #162c8f 100%);
+  color: #ffffff; text-align: center; cursor: pointer;
+  padding: env(safe-area-inset-top, 0px) max(16px, env(safe-area-inset-right, 0px)) env(safe-area-inset-bottom, 0px) max(16px, env(safe-area-inset-left, 0px));
+  animation: splash-out 0.45s ease 1.7s forwards;
+}
+.splash-inner { display: grid; justify-items: center; gap: 14px; }
+.splash-icon { width: 128px; height: 128px; filter: drop-shadow(0 14px 30px rgba(8, 16, 60, 0.45)); animation: splash-pop 0.6s cubic-bezier(.2, 1.4, .4, 1) both; }
+.splash-spark { transform-origin: 384px 122px; animation: splash-spin 0.9s ease 0.35s both; }
+.splash-name {
+  font-family: var(--font-display); font-weight: 800; font-size: clamp(2.6rem, 13vw, 3.6rem); letter-spacing: -0.04em; line-height: 1;
+  background: linear-gradient(transparent 60%, rgba(255, 212, 59, 0.85) 60%, rgba(255, 212, 59, 0.85) 90%, transparent 90%);
+  padding-inline: 0.06em; animation: splash-up 0.5s ease 0.25s both;
+}
+.splash-tag { font-size: 1.05rem; opacity: 0.88; animation: splash-up 0.5s ease 0.4s both; }
+.splash-by {
+  position: absolute; left: 0; right: 0; bottom: calc(28px + env(safe-area-inset-bottom, 0px));
+  font-family: var(--font-mono); font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.75;
+  animation: splash-up 0.5s ease 0.55s both;
+}
+@keyframes splash-pop { from { transform: scale(0.6); opacity: 0; } }
+@keyframes splash-up { from { transform: translateY(14px); opacity: 0; } }
+@keyframes splash-spin { from { transform: rotate(-90deg) scale(0); } }
+@keyframes splash-out { to { opacity: 0; visibility: hidden; pointer-events: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .show-splash .splash { animation: splash-out 0.2s linear 1s forwards !important; }
+  .splash *, .splash-by { animation: none !important; }
+}
+
+</style>
+<!-- ============ Opening screen (splash) ============
+       Shown for ~2 s when the app opens on its own (installed app, phone file, website).
+       Not shown inside the Claude viewer. Tap to skip. Pure CSS animation, so it
+       disappears even if the rest of the page is slow. -->
+  <script>
+    (function () {
+      var framed; try { framed = window.top !== window; } catch (e) { framed = true; }
+      if (!framed) document.documentElement.classList.add('show-splash');
+    })();
+  </script>
+  <div id="splash" class="splash" aria-hidden="true" onclick="this.remove()">
+    <div class="splash-inner">
+      <svg class="splash-icon" viewBox="0 0 512 512" aria-hidden="true">
+        <rect width="512" height="512" rx="112" fill="#ffffff" fill-opacity=".14"/>
+        <g transform="rotate(-7 256 268)">
+          <rect x="140" y="112" width="232" height="300" rx="30" fill="#ffffff"/>
+          <rect x="176" y="176" width="150" height="16" rx="8" fill="#C6D1F7"/>
+          <rect x="168" y="236" width="176" height="40" rx="12" fill="#FFD43B"/>
+          <rect x="176" y="248" width="160" height="16" rx="8" fill="#1D2B66"/>
+          <rect x="176" y="320" width="120" height="16" rx="8" fill="#C6D1F7"/>
+        </g>
+        <path class="splash-spark" d="M384 70 C390 108 398 116 436 122 C398 128 390 136 384 174 C378 136 370 128 332 122 C370 116 378 108 384 70 Z" fill="#FFD43B" stroke="#1D39B8" stroke-width="8" stroke-linejoin="round"/>
+      </svg>
+      <div class="splash-name">Exemptia</div>
+      <div class="splash-tag">Your private AI study companion</div>
+    </div>
+    <div class="splash-by">by Purala Samal</div>
+  </div>
+  <!-- ============ Always-visible privacy indicator ============ -->
+  <header class="topbar">
+    <div class="topbar-inner">
+      <span class="brand-mini">Exemptia</span>
+      <div id="statusPill" class="status-pill is-idle" role="status" aria-live="polite">
+        <span class="dot" aria-hidden="true"></span>
+        <span id="statusText">NOT LISTENING</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============ HOME ============ -->
+  <main id="home" class="screen">
+    <section class="hero">
+      <p class="eyebrow">For online classes</p>
+      <h1 class="wordmark"><span>Exemptia</span></h1>
+      <p class="tagline">Your private AI study companion</p>
+      <button id="startBtn" class="btn btn-start" type="button">Start class</button>
+      <p class="privacy-line">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5l-8-3Z"/></svg>
+        Your privacy comes first. Exemptia only processes information needed for your study session.
+      </p>
+    </section>
+
+    <section class="how" aria-label="How Exemptia works">
+      <ol class="steps">
+        <li><b>Start a class</b><span>Zoom, Google Meet, Webex, Teams or any other app. You choose what Exemptia can hear. Nothing starts on its own.</span></li>
+        <li><b>Notes write themselves</b><span>Lessons, definitions, formulas and examples are sorted for you. Chit-chat is thrown away.</span></li>
+        <li><b>Ask, then revise</b><span>Ask a doubt any time. At the end you get a summary and practice questions.</span></li>
+      </ol>
+      <div class="never card">
+        <h2>Exemptia never asks for</h2>
+        <ul class="chips">
+          <li>Your name</li><li>Phone number</li><li>Address</li><li>Contacts</li><li>Photos</li><li>An account</li>
+        </ul>
+        <p class="small">No audio is saved. Your notes stay in this browser tab until you close it or delete them.</p>
+        <p class="small" id="appLinks"><a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a></p>
+      </div>
+      <div class="install card" id="installCard" hidden>
+        <div><b>Install Exemptia</b><span class="small">Add the app to your home screen. It opens like any other app.</span></div>
+        <button id="installBtn" class="btn btn-small" type="button">Install</button>
+      </div>
+    </section>
+    <footer class="credit"><span class="credit-app">Exemptia</span><span>Founded and made by <b>Purala Samal</b></span></footer>
+  </main>
+
+  <!-- ============ CLASS ============ -->
+  <main id="classScreen" class="screen" hidden>
+    <div class="class-meta">
+      <span id="sourceLabel" class="meta-chip">Demo class</span>
+      <span id="clock" class="meta-chip mono">00:00</span>
+      <span id="countdown" class="meta-small"></span>
+    </div>
+
+    <div id="autoPauseBanner" class="banner" role="alert" hidden>
+      <div>
+        <strong>Class seems inactive. Notes paused automatically.</strong>
+        <span>Exemptia stopped listening. Press Resume when the class starts again.</span>
+      </div>
+      <button id="bannerResume" class="btn btn-small" type="button">Resume</button>
+    </div>
+
+    <div id="errorBanner" class="banner banner-error" role="alert" hidden></div>
+
+    <section id="textEntry" class="text-entry" hidden aria-label="Add lesson text">
+      <label for="lessonInput" class="label">Read, type or paste the lesson</label>
+      <textarea id="lessonInput" rows="4" placeholder="Tap here, then tap the 🎤 microphone key on your keyboard and start reading. Or type / paste text."></textarea>
+      <div class="text-entry-row">
+        <span class="small" id="textHint">Speak or type — notes appear below by themselves when you pause.</span>
+        <button id="addTextBtn" class="btn btn-small" type="button">Add to notes</button>
+      </div>
+    </section>
+
+    <div class="class-grid">
+      <section class="notes-col" aria-label="Live notes">
+        <div class="topic-card">
+          <span class="label">Current topic</span>
+          <h2 id="topicText">Listening for the topic…</h2>
+        </div>
+        <div id="liveNotes" class="notes"></div>
+      </section>
+
+      <aside class="feed-col" aria-label="What Exemptia heard">
+        <div class="feed-head">
+          <h3>Heard in class</h3>
+          <div class="meter" aria-hidden="true"><span id="meterBar"></span></div>
+        </div>
+        <ul id="feed" class="feed"></ul>
+        <p id="interim" class="interim" aria-live="off"></p>
+        <p id="skippedCount" class="small skipped">0 off-topic lines skipped and not saved.</p>
+      </aside>
+    </div>
+
+    <nav class="actionbar" aria-label="Class controls">
+      <div class="actionbar-inner">
+        <button id="pauseBtn" class="btn btn-ghost" type="button">Pause</button>
+        <button id="resumeBtn" class="btn btn-ghost" type="button" hidden>Resume</button>
+        <button id="doubtBtn" class="btn btn-doubt" type="button">Ask a doubt</button>
+        <button id="endBtn" class="btn btn-end" type="button">End class</button>
+      </div>
+    </nav>
+  </main>
+
+  <!-- ============ END ============ -->
+  <main id="endScreen" class="screen" hidden>
+    <section class="end-head">
+      <p class="eyebrow" id="endMeta"></p>
+      <h1>Your Class Notes Are Ready!</h1>
+      <p id="endTopic" class="end-topic"></p>
+      <p class="small privacy-done">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5l-8-3Z"/></svg>
+        The class transcript has been deleted. No audio was saved. Only these notes are kept, in this tab.
+      </p>
+    </section>
+
+    <div class="tabs" role="tablist" aria-label="Class notes sections">
+      <button role="tab" class="tab" data-tab="notes" aria-selected="true" type="button">Notes</button>
+      <button role="tab" class="tab" data-tab="summary" aria-selected="false" type="button">Summary</button>
+      <button role="tab" class="tab" data-tab="doubts" aria-selected="false" type="button">Doubts</button>
+      <button role="tab" class="tab" data-tab="revision" aria-selected="false" type="button">Revision</button>
+      <button role="tab" class="tab" data-tab="practice" aria-selected="false" type="button">Practice</button>
+    </div>
+    <section id="tabPanel" class="tab-panel" role="tabpanel"></section>
+
+    <div class="end-actions">
+      <button id="copyBtn" class="btn btn-ghost" type="button">Copy notes</button>
+      <button id="downloadBtn" class="btn btn-ghost" type="button">Save as file</button>
+      <button id="endDoubtBtn" class="btn btn-ghost" type="button">Ask a doubt</button>
+      <button id="deleteBtn" class="btn btn-danger" type="button">Delete everything</button>
+      <button id="newClassBtn" class="btn" type="button">New class</button>
+    </div>
+    <p id="endToast" class="toast" role="status" aria-live="polite"></p>
+    <footer class="credit"><span class="credit-app">Exemptia</span><span>Founded and made by <b>Purala Samal</b></span></footer>
+  </main>
+
+  <!-- ============ Sheet: how should Exemptia listen? ============ -->
+  <div id="sourceSheet" class="sheet" hidden>
+    <div class="sheet-backdrop" data-close></div>
+    <form class="sheet-panel" id="sourceForm" aria-labelledby="sourceTitle">
+      <div class="sheet-head">
+        <h2 id="sourceTitle">How should Exemptia listen?</h2>
+        <button type="button" class="icon-btn" data-close aria-label="Close">×</button>
+      </div>
+
+      <fieldset class="options">
+        <legend class="sr-only">Audio source</legend>
+        <label class="option">
+          <input type="radio" name="source" value="demo" id="srcDemo" checked>
+          <span class="option-body"><b>Demo class</b><span>A sample science lesson on photosynthesis. No microphone needed.</span></span>
+        </label>
+        <label class="option">
+          <input type="radio" name="source" value="text" id="srcText">
+          <span class="option-body"><b>Type or speak your own lesson</b><span>Read anything aloud with your keyboard’s microphone key, type it, or paste a lesson. Any subject.</span></span>
+        </label>
+        <label class="option" id="optTab">
+          <input type="radio" name="source" value="tab" id="srcTab">
+          <span class="option-body"><b>Meeting tab in your browser</b><span>Pick your class tab and turn on “Share tab audio”. Works with Zoom, Meet, Webex, Teams or any app open in a tab. Your browser shows that it’s sharing.</span><em id="tabNote" class="option-note"></em></span>
+        </label>
+        <label class="option" id="optMic">
+          <input type="radio" name="source" value="mic" id="srcMic">
+          <span class="option-body"><b>Microphone</b><span>Hears the class from your speakers. Works with any meeting app, including desktop and phone apps.</span><em id="micNote" class="option-note"></em></span>
+        </label>
+      </fieldset>
+
+      <!-- Which meeting app? Shown for live classes. Any app works; this only changes the tips
+           and which official connection is offered. -->
+      <fieldset class="app-pick" id="appPick" hidden>
+        <legend class="label">Your class is on</legend>
+        <div class="app-chips" id="appChips"></div>
+        <p id="appTip" class="small app-tip"></p>
+        <div class="connect-row">
+          <button type="button" class="btn btn-small btn-ghost" id="connectApp">Connect app</button>
+        </div>
+        <p id="connectMsg" class="small"></p>
+      </fieldset>
+
+      <label class="setting" for="inactivityMin">
+        <span>Pause automatically after</span>
+        <select id="inactivityMin">
+          <option value="1">1 minute</option>
+          <option value="2">2 minutes</option>
+          <option value="3" selected>3 minutes</option>
+          <option value="5">5 minutes</option>
+          <option value="10">10 minutes</option>
+        </select>
+        <span>of no class talk</span>
+      </label>
+
+      <label class="consent" id="consentRow" hidden>
+        <input type="checkbox" id="consent">
+        <span>I’m allowed to transcribe this class (my teacher or school permits it).</span>
+      </label>
+
+      <button type="submit" id="goBtn" class="btn btn-start btn-block">Start demo class</button>
+    </form>
+  </div>
+
+  <!-- ============ Sheet: Ask a doubt ============ -->
+  <div id="doubtSheet" class="sheet" hidden>
+    <div class="sheet-backdrop" data-close></div>
+    <div class="sheet-panel doubt-panel" role="dialog" aria-labelledby="doubtTitle">
+      <div class="sheet-head">
+        <h2 id="doubtTitle">Ask a doubt</h2>
+        <button type="button" class="icon-btn" data-close aria-label="Close">×</button>
+      </div>
+      <div id="thread" class="thread"></div>
+      <div id="suggestions" class="suggestions"></div>
+      <form id="doubtForm" class="doubt-form">
+        <label for="doubtInput" class="sr-only">Your question</label>
+        <input id="doubtInput" type="text" autocomplete="off" maxlength="300" placeholder="e.g. Why does evaporation cause cooling?">
+        <button class="btn" type="submit">Ask</button>
+      </form>
+    </div>
+  </div>
+<script>
+(()=>{var S=class{constructor(){this.stream=null,this.ctx=null,this.analyser=null,this.kind=null}static micSupported(){return!!navigator.mediaDevices?.getUserMedia}static tabSupported(){return!!navigator.mediaDevices?.getDisplayMedia}async startMic(){return this.stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:!0,noiseSuppression:!0},video:!1}),this.kind="mic",this._meter(),this.stream}async startTab(){let t=await navigator.mediaDevices.getDisplayMedia({video:!0,audio:!0});if(t.getVideoTracks().forEach(n=>n.stop()),!t.getAudioTracks().length){t.getTracks().forEach(s=>s.stop());let n=new Error('No audio was shared. Pick the Zoom or Meet TAB and turn on "Share tab audio".');throw n.name="NoAudioShared",n}return this.stream=new MediaStream(t.getAudioTracks()),this.kind="tab",this.stream.getAudioTracks()[0].addEventListener("ended",()=>this.onEnded?.()),this._meter(),this.stream}level(){if(!this.analyser)return 0;let t=new Uint8Array(this.analyser.fftSize);this.analyser.getByteTimeDomainData(t);let n=0;for(let s of t)n+=((s-128)/128)**2;return Math.min(1,Math.sqrt(n/t.length)*4)}_meter(){try{this.ctx=new(window.AudioContext||window.webkitAudioContext);let t=this.ctx.createMediaStreamSource(this.stream);this.analyser=this.ctx.createAnalyser(),this.analyser.fftSize=1024,t.connect(this.analyser)}catch{this.analyser=null}}stop(){this.stream?.getTracks().forEach(t=>t.stop()),this.stream=null,this.analyser=null,this.ctx?.close().catch(()=>{}),this.ctx=null,this.kind=null}};function J(e){return e?e.name==="NotAllowedError"||e.name==="SecurityError"?"Permission was not given, so Exemptia is not listening. You can allow it in your browser and try again.":e.name==="NotFoundError"?"No microphone was found on this device.":e.name==="NoAudioShared"?e.message:e.message||String(e):"Something went wrong with the audio."}var j={title:"Science \xB7 Photosynthesis (sample class)",lines:[{gapMs:1200,speaker:"Teacher",text:"Good morning everyone, can you all hear me? Okay, great."},{gapMs:2500,speaker:"Teacher",text:"Today we are learning about photosynthesis."},{gapMs:3e3,speaker:"Teacher",text:"Photosynthesis is the process by which green plants make their own food using sunlight."},{gapMs:3200,speaker:"Teacher",text:"Plants use sunlight, carbon dioxide and water to produce food."},{gapMs:2600,speaker:"Teacher",text:"Chlorophyll helps absorb sunlight."},{gapMs:3e3,speaker:"Teacher",text:"Chlorophyll is a green pigment found in the chloroplasts of leaf cells."},{gapMs:2400,speaker:"Teacher",text:"Rahul, please mute your microphone."},{gapMs:3200,speaker:"Teacher",text:"The word equation is: carbon dioxide + water \u2192 glucose + oxygen, in the presence of sunlight and chlorophyll."},{gapMs:3400,speaker:"Teacher",text:"The balanced chemical equation is 6CO2 + 6H2O \u2192 C6H12O6 + 6O2."},{gapMs:3200,speaker:"Teacher",text:"Stomata are tiny pores on the leaf surface that let carbon dioxide in and oxygen out."},{gapMs:3200,speaker:"Teacher",text:"For example, a money plant kept near a sunny window grows faster than one kept in a dark corner."},{gapMs:3e3,speaker:"Teacher",text:"Remember, oxygen is released as a by-product of photosynthesis."},{gapMs:2800,speaker:"Teacher",text:"This is important: photosynthesis happens mainly in the leaves."},{gapMs:2800,speaker:"Teacher",text:"Glucose made by the plant is stored as starch."},{gapMs:2800,speaker:"Teacher",text:"Does anyone know why leaves are green?"},{gapMs:3200,speaker:"Teacher",text:"Leaves look green because chlorophyll reflects green light."},{gapMs:2600,speaker:"Teacher",text:"By the way, did everyone watch the match yesterday?"},{silence:!0},{gapMs:1500,speaker:"Teacher",text:"Okay, let's continue. Factors affecting photosynthesis include light intensity, carbon dioxide concentration and temperature."},{gapMs:3200,speaker:"Teacher",text:"For example, on a cloudy day the rate of photosynthesis is lower."},{gapMs:3200,speaker:"Teacher",text:"So in summary, plants convert light energy into chemical energy stored in glucose."}]},V=10*1e3;var $=class{constructor(){this.onText=()=>{},this.onInterim=()=>{},this.onError=()=>{},this.onDone=()=>{},this.active=!1}},M=class extends ${constructor({speed:t=1}={}){super(),this.index=0,this.speed=t,this.timer=null}start(){this.active=!0,this._next()}stop(){this.active=!1,clearTimeout(this.timer)}_next(){if(!this.active)return;let t=j.lines[this.index];if(!t){this.active=!1,this.onDone();return}if(t.silence){this.index++,this.onInterim("");return}let n=t.text.split(" "),s=0,o=()=>{this.active&&(s++,this.onInterim(n.slice(0,s).join(" ")),s<n.length?this.timer=setTimeout(o,110/this.speed):(this.onInterim(""),this.onText(t.text),this.index++,this.timer=setTimeout(()=>this._next(),(j.lines[this.index]?.gapMs||800)/this.speed)))};this.timer=setTimeout(o,300/this.speed)}},C=class extends ${static supported(){return!!(window.SpeechRecognition||window.webkitSpeechRecognition)}constructor({lang:t="en-IN"}={}){super(),this.lang=t,this.rec=null}start(){let t=window.SpeechRecognition||window.webkitSpeechRecognition;this.active=!0,this.rec=new t,this.rec.lang=this.lang,this.rec.continuous=!0,this.rec.interimResults=!0,this.rec.onresult=n=>{let s="";for(let o=n.resultIndex;o<n.results.length;o++){let r=n.results[o];r.isFinal?this.onText(r[0].transcript.trim()):s+=r[0].transcript}this.onInterim(s)},this.rec.onerror=n=>{if(n.error==="no-speech"||n.error==="aborted")return;let s={"not-allowed":"Microphone permission was not given, so Exemptia is not listening. Allow the microphone for this page and press Resume.","service-not-allowed":"Speech recognition is turned off in this browser. Try Chrome on Android or Safari on iPhone.","audio-capture":"The microphone is busy or missing. If a call is running on this phone, it blocks the microphone \u2014 play the class on another device.",network:"Speech recognition needs an internet connection. Check your connection and press Resume."},o=new Error(s[n.error]||`Speech recognition error: ${n.error}`);o.fatal=n.error in s,o.fatal&&(this.active=!1),this.onError(o)},this.rec.onend=()=>{if(this.active)try{this.rec.start()}catch{}},this.rec.start()}stop(){this.active=!1;try{this.rec?.stop()}catch{}this.rec=null,this.onInterim("")}},L=class extends ${constructor({stream:t,audioInput:n,chunkMs:s=8e3}){super(),this.stream=t,this.audioInput=n,this.chunkMs=s,this.recorder=null,this.timer=null,this.loudSamples=0}static supported(){return typeof MediaRecorder<"u"}start(){this.active=!0,this._recordChunk()}stop(){this.active=!1,clearTimeout(this.timer),clearInterval(this.levelTimer),this.recorder?.state==="recording"&&this.recorder.stop(),this.recorder=null}_recordChunk(){if(!this.active)return;let t=MediaRecorder.isTypeSupported("audio/webm;codecs=opus")?"audio/webm;codecs=opus":"",n=[];this.loudSamples=0,this.recorder=new MediaRecorder(this.stream,t?{mimeType:t}:void 0),this.recorder.ondataavailable=s=>s.data.size&&n.push(s.data),this.recorder.onstop=()=>{let s=this.loudSamples>=3,o=new Blob(n,{type:"audio/webm"});n.length=0,s&&this._upload(o),this._recordChunk()},clearInterval(this.levelTimer),this.levelTimer=setInterval(()=>{this.audioInput.level()>.08&&this.loudSamples++},250),this.recorder.start(),this.timer=setTimeout(()=>{this.recorder?.state==="recording"&&this.recorder.stop()},this.chunkMs)}async _upload(t){try{this.onInterim("\u2026transcribing");let n=await fetch("/api/transcribe",{method:"POST",headers:{"Content-Type":"audio/webm"},body:t}),s=await n.json();if(this.onInterim(""),!n.ok)throw new Error(s.error||"Transcription failed");s.text&&this.onText(s.text)}catch(n){this.onError(n)}}},A=class extends ${start(){this.active=!0}stop(){this.active=!1}submit(t){let n=String(t||"").trim();return this.active&&n&&this.onText(n),this.active&&!!n}};var I=new Set(`a an the and or but if then so of to in on at by for with from as into onto
+is are was were be been being am do does did done has have had having can could will would shall should may might must
+this that these those it its it's they them their there here we us our you your i me my he she his her him
+what which who whom whose when where why how all any both each few more most other some such no nor not only own same
+than too very just also about above below up down out over under again further once because while during before after
+let lets let's okay ok right yes yeah well now today really actually basically like get got go going gonna make makes made
+one two three every each use uses used using very much many lot lots thing things way ways called mean means include includes`.split(/\s+/));function X(e){return String(e||"").replace(/\s+/g," ").split(/(?<=[.!?])\s+(?=[A-Z0-9"'(])/).flatMap(t=>t.split(/\s+/).length>25?je(t):[t]).map(t=>t.trim()).filter(Boolean)}var qe=/\s+(?=(?:for example|for instance|remember|note that|this is important|in summary|however|therefore|on the other hand|this means)\b)/i,Be=/(?<!\b(?:which|that|who|whom|where|when|because|if|and|or|but|of|by|to|than|as))\s+(?=(?:the|a|an|in|on|during|after)\s+\w+(?:\s+\w+)?\s+(?:is|are|was|were|has|have|had|conducts|means|began|ended|became|contains|includes|helps|makes|made|gives|gave)\b)/i;function je(e){return e.split(qe).flatMap(t=>t.split(/\s+/).length>12?t.split(Be):[t]).map(t=>m(t.trim().replace(/[,;]$/,""))).map(t=>/[.!?]$/.test(t)?t:t+".")}function k(e){let t=String(e||"").trim(),n=/^(okay|ok|so|now|alright|all right|right|well|um+|uh+|basically|and|also|anyway|see)\b[,\s]*/i;for(let s=0;s<4&&n.test(t);s++)t=t.replace(n,"");return t=t.replace(/\b(you know|kind of|sort of|like I said|um+|uh+)\b[,]?\s*/gi,"").replace(/\s{2,}/g," ").trim(),m(t)}function m(e){return e=String(e||"").trim(),e&&e[0].toUpperCase()+e.slice(1)}function _(e){return String(e||"").split(" ").map((t,n)=>n===0||t.length>3?m(t):t).join(" ")}function w(e){return e=String(e||"").trim(),e&&(/[.!?:)]$/.test(e)?e:e+".")}function x(e){return(String(e||"").toLowerCase().match(/[a-z][a-z0-9-]*/g)||[]).filter(t=>t.length>2&&!I.has(t))}function ee(e){return String(e||"").replace(/[\w.+-]+@[\w-]+\.[\w.-]+/g,"[email removed]").replace(/https?:\/\/\S+/g,"[link removed]").replace(/\b(meeting id|passcode|password|pin)\b[:\s]*[\w-]+/gi,"[$1 removed]").replace(/(\+?\d[\d\s-]{8,}\d)/g,t=>t.replace(/\D/g,"").length>=9?"[number removed]":t)}function te(e,t){let n=new Set(x(t).map(Z)),s=0;for(let o of e)n.has(Z(o))&&s++;return s}function Z(e){return e.replace(/(ies)$/,"y").replace(/(ing|ed|es|s)$/,"").replace(/(.)\1$/,"$1")}function y(e,t=n=>n){let n=new Set;return e.filter(s=>{let o=String(t(s)).toLowerCase();return n.has(o)?!1:(n.add(o),!0)})}var Ue=[/\b(good (morning|afternoon|evening)|hello|hi everyone|hey guys)\b/i,/\bcan (you|everyone|you all) (hear|see) me\b/i,/\b(un)?mute\b/i,/\b(audio is|screen share|share my screen|turn on your (camera|video)|you're breaking up|my internet)\b/i,/\bby the way\b/i,/\b(see you|bye|thank you all|thanks everyone|that's all for today)\b/i,/\b(my|your) (mom|mother|dad|father|brother|sister|phone number|address)\b/i],Re=/\b(match|movie|weekend|vacation|holiday|party|birthday|lunch|dinner|bathroom|washroom|attendance|camera|video|internet|network|connection|lag|wifi|wi-fi)\b/i,We=/\b(you|your|you're|everyone|anyone|guys|we|i|i'm|me)\b/i,He=/^[A-Z][a-z]+,\s+(please|can|could|are|did|you|stop|turn|switch|wait)\b/,Fe=[/\b(is|are|was|were) (a|an|the|called|known as|defined as)\b/i,/\b(means|refers to|is called|are called|defined|definition)\b/i,/\b(learn|learning|study|chapter|topic|lesson|concept|theory|law|principle|rule)\b/i,/\b(equation|formula|equals|=|→|->|\+|×|÷|ratio|percent|unit|measured)\b/i,/\b(for example|for instance|such as|e\.g\.)\b/i,/\b(remember|important|note that|key point|in summary|to summarise|to summarize)\b/i,/\b(because|therefore|so that|which means|as a result|causes|produces|converts|depends)\b/i,/\b(process|energy|cell|force|reaction|number|value|function|history|language|grammar)\b/i,/\d/];function Ke(e){let t=e.trim();if(t.split(/\s+/).length<4)return{score:-1,reason:"too short"};if(He.test(t))return{score:-2,reason:"addresses a person"};let s=0;for(let o of Ue)o.test(t)&&(s-=2);Re.test(t)&&We.test(t)&&(s-=2);for(let o of Fe)o.test(t)&&(s+=1);return x(t).length>=4&&(s+=1),{score:s,reason:s>0?"study content":"not study related"}}function ne(e){let t=[],n=0;for(let s of X(ee(e))){let{score:o}=Ke(s);o>0?t.push(s):n++}return{kept:t,droppedCount:n}}var P=class{constructor(t){this.timeoutMs=t.timeoutMs??18e4,this.onInactive=t.onInactive,this.onTick=t.onTick||(()=>{}),this.now=t.now||(()=>Date.now()),this._setInterval=t.setInterval||((n,s)=>setInterval(n,s)),this._clearInterval=t.clearInterval||(n=>clearInterval(n)),this.timer=null,this.lastActivity=0}start(){this.stop(),this.lastActivity=this.now(),this.timer=this._setInterval(()=>this.check(),1e3)}stop(){this.timer&&this._clearInterval(this.timer),this.timer=null}heardMeaningfulSpeech(){this.lastActivity=this.now()}setTimeout(t){this.timeoutMs=t}msLeft(){return Math.max(0,this.timeoutMs-(this.now()-this.lastActivity))}check(){let t=this.msLeft();this.onTick(t),t<=0&&(this.stop(),this.onInactive())}};function D(){return{topic:"",keyConcepts:[],definitions:[],formulas:[],examples:[],importantPoints:[],questions:[],quickSummary:""}}var Ye=/\b(?:today|in this (?:class|lesson|chapter))?\s*(?:we\s+(?:are|will be|will|'re|are going to)\s+)?(?:learning|learn|studying|study|discussing|discuss|talking|covering|looking at)\s+(?:about\s+)?(.+?)[.!?]?$/i,ze=/\b(?:today's|the|our) (?:topic|chapter|lesson) (?:is|will be|today is)\s+(?:on\s+|about\s+)?(.+?)[.!?]?$/i;function Ge(e){let t=e.trim(),n=t.match(ze)||(/^(today|in this|we|let's|now we)/i.test(t)?t.match(Ye):null);if(!n)return null;let s=n[1].replace(/^(the|a|an)\s+/i,"").replace(/[,;].*$/,"").trim();return!s||s.split(" ").length>6?null:_(s)}var U=/^(this|that|it|there|these|those|today|here|which|what|who|he|she|they|we|you|i)\b/i;function Qe(e){let t=k(e).replace(/[.!]$/,"");if(t.endsWith("?"))return null;t=t.replace(/^(remember|note|so|in short)[,:]?\s+/i,"");let n=t.match(/^(.{3,60}?)\s+(is|are)\s+(called|known as)\s+(.{2,})$/i);if(n&&!U.test(n[1])){let l=n[4].trim();if(l.split(/\s+/).length<=3)return{term:m(l),meaning:w(m(n[1].replace(/^the\s+/i,"")))};if(n[1].split(/\s+/).length<=4)return{term:m(n[1].replace(/^(the|a|an)\s+/i,"")),meaning:w(m(`${n[3]} ${l}`))}}if(n=t.match(/^([\w\s-]{2,40}?)\s+(?:means|refers to|is defined as|are defined as)\s+(.{5,})$/i),n&&!U.test(n[1]))return{term:m(n[1].trim()),meaning:w(m(n[2]))};if(n=t.match(/^([\w\s-]{2,40}?)\s+(is|are)\s+(.{5,})$/i),!n)return null;let s=n[1].trim(),o=n[3].trim(),r=o.split(/\s+/)[0].toLowerCase();return U.test(s)||s.split(/\s+/).length>4||/ed$/.test(r)&&!/^(a|an|the)$/.test(r)||/^(not|very|so|also|important|green|good|bad|easy|hard|here|there)$/.test(r)||!/^(a|an|the|tiny|small|large|one|any|how|when|where|what|process|type|kind|form|unit|part|measure)/i.test(o)&&!/\b(of|that|which|by|used|where)\b/.test(o)?null:{term:m(s.replace(/^(the|a|an)\s+/i,"")),meaning:w(m(o))}}function Je(e){let t=k(e).replace(/\.$/,""),n=/(→|->|=|\+|×|÷|\^|\/)/.test(t)&&/[A-Za-z0-9]/.test(t),s=/\b(equation|formula|law)\b/i.test(t);if(!n&&!(s&&/\b(is|equals)\b/i.test(t))||!n)return null;let o=t.match(/^(?:the\s+)?(.{0,50}?\b(?:equation|formula|law|rule))\s*(?:is|:|=)\s*:?\s*(.+)$/i);return o?{label:m(o[1]),value:o[2].replace(/->/g,"\u2192").trim()}:{label:"Formula",value:t.replace(/->/g,"\u2192")}}var Ve=/\b(for example|for instance|such as|e\.g\.|an example is|example of this)\b[,:]?\s*/i;function Ze(e){if(!Ve.test(e))return null;let n=k(e).replace(/^(for example|for instance|an example is|e\.g\.)[,:]?\s*/i,"");return w(m(n))}var se=/^(remember|note that|note|important|this is important|key point|don't forget|keep in mind|in summary|so in summary|to summari[sz]e|always|never)\b[,:]?\s*/i;function Xe(e){let t=k(e);if(!se.test(t)&&!/\b(very important|is important:)/i.test(t))return null;let n=t.replace(/^this is important[:,]?\s*/i,"").replace(/^(so\s+)?in summary[,:]?\s*/i,"").replace(se,"");return w(m(n||t))}function et(e,t,n=6){let s=new Map,o=new Map;for(let c of e){let p=c.toLowerCase().match(/[a-z][a-z-]*/g)||[];for(let u=0;u<p.length;u++){let d=p[u];d.length>3&&!I.has(d)&&s.set(d,(s.get(d)||0)+1);let g=p[u+1];g&&d.length>3&&g.length>3&&!I.has(d)&&!I.has(g)&&o.set(`${d} ${g}`,(o.get(`${d} ${g}`)||0)+1)}}let r=[];for(let c of t)r.push(c.term);for(let[c,p]of[...o].sort((u,d)=>d[1]-u[1]))p>=2&&r.push(c);let l=r.join(" ").toLowerCase();for(let[c,p]of[...s].sort((u,d)=>d[1]-u[1]))p>=2&&!l.includes(c)&&r.push(c);return y(r.map(c=>_(c))).slice(0,n)}function oe(e,t=[]){let n=D(),s=[];for(let l of e){let c=!n.topic&&Ge(l);if(c){n.topic=c;continue}let p=Je(l);if(p){n.formulas.push(p);continue}let u=Ze(l);if(u){n.examples.push(u);continue}let d=Qe(l);if(d){n.definitions.push(d);continue}let g=Xe(l);if(g){n.importantPoints.push(g);continue}if(l.trim().endsWith("?")){n.questions.push(k(l));continue}s.push(w(k(l)))}let o=n.importantPoints,r=s.filter(l=>l.split(" ").length<=25);return n.importantPoints=y([...o,...r]).slice(0,10),n.definitions=y(n.definitions,l=>l.term),n.formulas=y(n.formulas,l=>l.value),n.examples=y(n.examples).slice(0,6),n.questions=y([...n.questions,...t.filter(l=>!l.answer?.isFollowUp).map(l=>l.question)]),n.topic||(n.topic=n.definitions[0]?.term||tt(e)),n.keyConcepts=et(e,n.definitions),n.quickSummary=nt(n),n}function tt(e){let t=x(e.join(" "));if(!t.length)return"";let n={};for(let o of t)o.length>4&&(n[o]=(n[o]||0)+1);let s=Object.entries(n).sort((o,r)=>r[1]-o[1])[0];return s?_(s[0]):""}function nt(e){if(!e.topic&&!e.definitions.length&&!e.importantPoints.length)return"";let t=[];return e.topic&&t.push(`This class is about ${e.topic.toLowerCase()}.`),e.definitions[0]&&t.push(`${e.definitions[0].term} is ${st(e.definitions[0].meaning)}`),e.keyConcepts.length>1&&t.push(`Key ideas: ${e.keyConcepts.slice(0,4).join(", ")}.`),e.formulas[0]&&t.push(`Main formula: ${e.formulas[0].value}.`),t.join(" ")}function st(e){return e&&e[0].toLowerCase()+e.slice(1)}function ie(e,t=[]){let n=e.topic||"today's lesson",s=[`Today's class covered ${n.toLowerCase()}.`,e.definitions[0]?`${e.definitions[0].term}: ${ae(e.definitions[0].meaning)}`:"",e.keyConcepts.length?`The main ideas were ${it(e.keyConcepts.slice(0,4).map(u=>u.toLowerCase()))}.`:"",e.examples.length?`The teacher explained it with ${e.examples.length===1?"an example":`${e.examples.length} examples`}.`:""].filter(Boolean).join(" "),o=[...e.definitions.map(u=>`${u.term} \u2014 ${ae(u.meaning)}`),...e.importantPoints,...e.formulas.map(u=>`${u.label}: ${u.value}`)],r=y(o).slice(0,10);r.length<5&&(r=y([...r,...e.examples]).slice(0,10));let l=[...e.formulas.map(u=>({label:u.label,value:u.value}))],c=[];for(let u of t)u.answer?.isFollowUp||c.push({topic:at(u),reason:"You asked a doubt about this"});for(let u of e.definitions)c.push({topic:u.term,reason:"Learn the definition word-for-word"});for(let u of e.formulas)c.push({topic:u.label,reason:"Practise writing it from memory"});let p=y(c,u=>u.topic).slice(0,8);return{topic:n,classSummary:s,topPoints:r,definitions:e.definitions,formulasAndFacts:l,doubts:t.map(u=>({question:u.question,answer:u.answer?.explanation||""})),revisionTopics:p,practiceQuestions:ot(e)}}function ot(e){let t=[];for(let o of e.definitions.slice(0,3)){let r=/(ata|ia)$/i.test(o.term)||/s$/i.test(o.term)&&!/(ss|is|us)$/i.test(o.term);t.push({type:"Short answer",question:`What ${r?"are":"is"} ${o.term.toLowerCase()}?`,answer:o.meaning})}for(let o of e.formulas.slice(0,2))t.push({type:"Write it out",question:`Write the ${o.label.toLowerCase()}.`,answer:o.value});let n=e.keyConcepts.map(o=>o.toLowerCase()),s=new Set;for(let o of e.importantPoints){let r=n.find(c=>!s.has(c)&&o.toLowerCase().includes(c)&&c.split(" ").length<=2);if(!r)continue;let l=new RegExp(r.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"i");if(s.add(r),t.push({type:"Fill in the blank",question:o.replace(l,"______"),answer:m(r)}),t.filter(c=>c.type==="Fill in the blank").length>=2)break}return e.examples[0]&&t.push({type:"Think about it",question:`Explain this example in your own words: "${e.examples[0]}"`,answer:"Use the key concepts from your notes to explain what is happening and why."}),t.slice(0,7)}function at(e){if(e.answer?.topic)return e.answer.topic;if(e.answer?._entryKey)return m(e.answer._entryKey);let t=x(e.question).slice(0,3).join(" ");return m(t||e.question.replace(/\?$/,""))}function it(e){return e.length<=1?e.join(""):`${e.slice(0,-1).join(", ")} and ${e[e.length-1]}`}function ae(e){return e&&e[0].toLowerCase()+e.slice(1)}var ue=[{keys:["evaporation","cooling","evaporate","sweat"],explanation:"When water evaporates, the fastest-moving (most energetic) water particles escape into the air. They need heat energy to break free, and they take that energy from the surface they leave. The surface is left with less heat energy, so it feels cooler.",simpler:"Evaporating water carries heat away with it. Less heat left behind means cooler.",example:"After swimming you feel cold even on a warm day, because the water on your skin is evaporating and taking your body heat with it.",analogy:'It is like the most energetic students leaving a party early. The party that remains is calmer \u2014 the "average energy" drops.',followUps:["Why does evaporation happen faster on a windy day?","How does sweating keep us cool?"]},{keys:["photosynthesis","make","food","plants","plant"],explanation:"Photosynthesis is how green plants make their own food. Leaves take in carbon dioxide from the air, roots bring up water, and chlorophyll traps sunlight. The plant uses that light energy to turn carbon dioxide and water into glucose (food), and gives out oxygen.",simpler:"Plants use sunlight to turn air and water into sugar, and they breathe out oxygen.",example:"A plant kept in a dark cupboard turns yellow and weak because it cannot make food without light.",analogy:"A leaf is like a solar-powered kitchen: sunlight is the electricity, carbon dioxide and water are the ingredients, and glucose is the meal.",followUps:["Why do plants need chlorophyll?","What happens to the glucose a plant makes?"]},{keys:["chlorophyll","green","pigment","leaves","leaf","colour","color"],explanation:"Chlorophyll is the green pigment inside chloroplasts. It absorbs red and blue light very well and uses that energy for photosynthesis. It does not absorb much green light \u2014 that green light bounces back (is reflected) into our eyes, so leaves look green.",simpler:"Chlorophyll soaks up red and blue light and bounces green light back, so leaves look green.",example:"In autumn, some trees stop making chlorophyll, so other colours (yellow, orange) in the leaf become visible.",analogy:'Chlorophyll is like a solar panel that only "eats" red and blue light and throws the green away.',followUps:["Can plants with red leaves photosynthesise?","Where are chloroplasts found?"]},{keys:["stomata","pores","stoma"],explanation:"Stomata are tiny openings, mostly on the underside of leaves. They let carbon dioxide in for photosynthesis and let oxygen and water vapour out. Guard cells around each stoma open and close it.",simpler:"Stomata are tiny doors in a leaf that let gases in and out.",example:"On a very hot day, stomata close to stop the plant losing too much water.",analogy:"Stomata are like the windows of a house \u2014 opened for fresh air, shut when it is too hot outside.",followUps:["What are guard cells?","Why are most stomata under the leaf?"]},{keys:["glucose","starch","stored","store"],explanation:"Glucose is the sugar a plant makes during photosynthesis. Some is used straight away for energy. Extra glucose is joined together into starch, which is easier to store, and kept in leaves, roots, seeds or tubers.",simpler:"Plants make sugar (glucose) and save the extra as starch for later.",example:"A potato is a store of starch that the plant made from glucose.",analogy:"Glucose is like cash in your pocket; starch is like money saved in the bank.",followUps:["How can we test a leaf for starch?","Why is starch better for storage than glucose?"]},{keys:["oxygen","by-product","byproduct","release","released"],explanation:"During photosynthesis, water molecules are split to get hydrogen. The oxygen left over is not needed by the plant for making food, so it is released into the air through the stomata. That oxygen is what animals and people breathe.",simpler:'Making food leaves oxygen as "leftover", so the plant lets it out.',example:"Water plants in an aquarium give off small oxygen bubbles in bright light.",analogy:"Like sawdust when you cut wood \u2014 it is made along the way, not the main goal.",followUps:["Where does the oxygen come from \u2014 CO\u2082 or water?","Do plants also use oxygen?"]},{keys:["rate","factors","intensity","temperature","cloudy","faster","slower"],explanation:"The speed (rate) of photosynthesis depends on light intensity, carbon dioxide amount and temperature. If any one of them is low, it limits how fast the plant can make food \u2014 even if the others are plentiful.",simpler:"Less light, less CO\u2082 or the wrong temperature all slow down food-making.",example:"On a cloudy day there is less light, so plants make food more slowly.",analogy:"Like a factory line: if one machine is slow, the whole line slows to that speed.",followUps:["What is a limiting factor?","Why does very high temperature slow photosynthesis?"]}],re=/\b(simpl\w*|easier|don't understand|dont understand|confus\w*|again|explain more|eli5|still)\b/i,le=/\b(another example|more example|give (me )?an example|example)\b/i,ce=/\b(analogy|compare|like what|real life)\b/i;function rt(e){let t=null,n=0;for(let s of ue){let o=e.filter(l=>s.keys.includes(l)).length,r=e.includes(s.keys[0])?.5:0;o+r>n&&(t=s,n=o+r)}return n>=1?t:null}function pe(e,{sentences:t=[],history:n=[]}={}){let s=x(e),o=n[n.length-1],r=!!o&&(re.test(e)||le.test(e)||ce.test(e)||/\b(it|that|this|those|they|them)\b/i.test(e)&&s.length<=3),l=rt(s);!l&&r&&o.answer?._entryKey&&(l=ue.find(u=>u.keys[0]===o.answer._entryKey)||null);let c=l?[...s,...l.keys]:s,p=t.map(u=>({s:u,score:te(c,u)})).filter(u=>u.score>=1).sort((u,d)=>d.score-u.score).slice(0,2).map(u=>w(u.s));return l?r&&re.test(e)?O(l,{explanation:l.simpler,fromClass:p,followUpType:"simpler"}):r&&le.test(e)?O(l,{explanation:`Here is a real-life example: ${l.example}`,fromClass:p,followUpType:"example"}):r&&ce.test(e)?O(l,{explanation:l.analogy,fromClass:p,followUpType:"analogy"}):O(l,{explanation:l.explanation,fromClass:p}):p.length?{explanation:"Here is what your teacher said in class that relates to your question. Read it slowly and try to connect it with your question. If it still feels unclear, ask your teacher \u2014 that is a great doubt to raise!",example:"",analogy:"",fromClass:p,followUps:["Can you explain that more simply?","Can you give an example?"],source:"class-context"}:{explanation:"Demo Mode can only answer a small set of science questions (like photosynthesis and evaporation). Add an OPENAI_API_KEY to the server to get full answers to any question. Meanwhile, write this doubt down and ask your teacher.",example:"",analogy:"",fromClass:[],followUps:["Why does evaporation cause cooling?","Why are leaves green?"],source:"demo-limit"}}function O(e,{explanation:t,fromClass:n,followUpType:s}){return{explanation:t,example:s==="example"?"":e.example,analogy:s==="analogy"?"":e.analogy,fromClass:n,followUps:e.followUps.concat(s==="simpler"?[]:["Can you explain that more simply?"]),source:"demo-library",isFollowUp:!!s,_entryKey:e.keys[0]}}var f={name:"local",ai:"mock",async notes(e,t){return oe(e,t)},async doubt(e,t,n){return pe(e,{sentences:t,history:n})},async summary(e,t){return ie(e,t)}};async function R(e,t){let n=await fetch(e,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(t)});if(!n.ok)throw new Error(`${e} \u2192 ${n.status}`);return(await n.json()).result}function de(e){return{name:"server",ai:e.ai,async notes(t,n){try{return await R("/api/notes",{sentences:t,doubts:n})}catch{return f.notes(t,n)}},async doubt(t,n,s){try{return await R("/api/doubt",{question:t,sentences:n,history:s})}catch{return f.doubt(t,n,s)}},async summary(t,n){try{return await R("/api/summary",{notes:t,doubts:n})}catch{return f.summary(t,n)}}}}async function me(){return null;try{let e=await fetch("/api/status",{cache:"no-store"});return e.ok?await e.json():null}catch{return null}}var W=`You help school students revise. Use short, clear, simple sentences and easy words.
+If a technical word is needed, explain it. Only use what the class content supports, plus basic
+well-known textbook knowledge when it is needed to explain a doubt.`,he=`"notes": {"topic": string, "keyConcepts": string[] (max 8), "definitions": [{"term": string, "meaning": string}],
+"formulas": [{"label": string, "value": string}], "examples": string[], "importantPoints": string[] (max 10),
+"questions": string[] (questions raised in class plus the student's doubts), "quickSummary": string (2-3 sentences)}`,lt=`"summary": {"topic": string, "classSummary": string (3-4 sentences), "topPoints": string[] (5-10),
+"definitions": [{"term": string, "meaning": string}], "formulasAndFacts": [{"label": string, "value": string}],
+"doubts": [{"question": string, "answer": string}], "revisionTopics": [{"topic": string, "reason": string}],
+"practiceQuestions": [{"type": string, "question": string, "answer": string}] (4-7: short answer, fill in the blank, one "Think about it")}`,b=e=>Array.isArray(e)?e:[];function fe(e){let t=!0,n=s=>{["not_granted","sampling_disabled","not_declared","capability_disabled"].includes(s?.code)&&(t=!1)};return{name:"claude",ai:"claude",get usable(){return t},notes:f.notes,async doubt(s,o,r){if(!t)return f.doubt(s,o,r);let l=r.slice(-4).map(c=>`Student: ${c.question}
+Tutor: ${c.answer?.explanation||""}`).join(`
+`);try{let c=await e.json(`${W}
+Answer the student's doubt so they UNDERSTAND it. Connect it to the class when relevant, explain simply in 3-6 sentences,
+then give an everyday example and an analogy if useful.
+Reply with only JSON: {"explanation": string, "example": string, "analogy": string,
+"fromClass": string[] (up to 2 sentences copied from the class that relate, may be empty),
+"followUps": string[] (2 short follow-up questions), "topic": string (1-3 word concept name)}
+
+Class so far:
+${o.slice(-60).join(`
+`)||"(nothing yet)"}
+
+Earlier conversation:
+${l||"(none)"}
+
+New doubt: ${s}`,{modelTier:"quick",cache:!1});return{explanation:String(c.explanation||""),example:String(c.example||""),analogy:String(c.analogy||""),fromClass:b(c.fromClass).map(String),followUps:b(c.followUps).map(String),topic:String(c.topic||""),source:"claude"}}catch(c){return n(c),f.doubt(s,o,r)}},async liveNotes(s,o){if(!t||!s.length)return null;try{let r=await e.json(`${W}
+Turn this lesson text into revision notes for a school student. It may come from voice typing, so fix missing
+punctuation and obvious speech-to-text mistakes. Reply with only one JSON object: { ${he} }
+Empty arrays are fine.
+
+Lesson text:
+${s.join(`
+`)}
+
+Student doubts: ${o.map(c=>c.question).join(" | ")||"none"}`,{modelTier:"quick"}),l={...D(),...r.notes||r};for(let c of["keyConcepts","definitions","formulas","examples","importantPoints","questions"])l[c]=b(l[c]);return l}catch(r){return n(r),null}},async finish(s,o){let r=async()=>{let l=await f.notes(s,o);return{notes:l,summary:await f.summary(l,o),by:"offline"}};if(!t||!s.length)return r();try{let l=await e.json(`${W}
+Turn this class into revision notes and an end-of-class pack.
+Reply with only one JSON object: { ${he}, ${lt} }
+Empty arrays are fine where the class had nothing.
+
+Class content (study sentences only):
+${s.join(`
+`)}
+
+Doubts the student asked:
+${o.map(d=>`Q: ${d.question}
+A: ${d.answer?.explanation||""}`).join(`
+`)||"none"}`),c={...D(),...l.notes||{}};for(let d of["keyConcepts","definitions","formulas","examples","importantPoints","questions"])c[d]=b(c[d]);let p=l.summary||{},u={topic:p.topic||c.topic,classSummary:String(p.classSummary||c.quickSummary||""),topPoints:b(p.topPoints),definitions:b(p.definitions),formulasAndFacts:b(p.formulasAndFacts),doubts:b(p.doubts),revisionTopics:b(p.revisionTopics),practiceQuestions:b(p.practiceQuestions)};return{notes:c,summary:u,by:"claude"}}catch(l){return n(l),r()}},summary:f.summary}}function ct(){let e=new Uint8Array(6);return crypto.getRandomValues(e),[...e].map(t=>t.toString(16).padStart(2,"0")).join("")}function ye({source:e,meetingApp:t=null}){return{id:ct(),source:e,meetingApp:t,startedAt:Date.now(),endedAt:null,sentences:[],droppedCount:0,doubts:[],notes:null,summary:null,transcriptDeleted:!1}}function ge(e){e.sentences.length=0,e.transcriptDeleted=!0}function we(e){if(e)for(let t of Object.keys(e))Array.isArray(e[t])&&(e[t].length=0),e[t]=null}function H(e){let t=e.notes||{},n=e.summary||{},s=r=>r&&r.length?r.map(l=>`- ${l}`).join(`
+`):"- \u2014",o=new Date(e.startedAt).toLocaleDateString();return[`# ${t.topic||"Class notes"} \u2014 ${o}`,"","## Quick Summary",t.quickSummary||n.classSummary||"\u2014","","## Key Concepts",s(t.keyConcepts),"","## Important Definitions",s((t.definitions||[]).map(r=>`**${r.term}** \u2014 ${r.meaning}`)),"","## Formulas",s((t.formulas||[]).map(r=>`${r.label}: \`${r.value}\``)),"","## Examples",s(t.examples),"","## Important Points",s(n.topPoints?.length?n.topPoints:t.importantPoints),"","## Doubts",s((e.doubts||[]).map(r=>`**Q:** ${r.question}
+  **A:** ${r.answer?.explanation||""}`)),"","## Revise",s((n.revisionTopics||[]).map(r=>`${r.topic} \u2014 ${r.reason}`)),"","## Practice",s((n.practiceQuestions||[]).map(r=>`${r.question}  _(Answer: ${r.answer})_`)),"","_Made with Exemptia. No audio or personal details were saved._"].join(`
+`)}var T=[{id:"zoom",name:"Zoom",integration:"zoom",tip:"Join with \u201CJoin from your browser\u201D and share that tab, or use Microphone with the Zoom app."},{id:"meet",name:"Google Meet",integration:"meet",tip:"Meet runs in your browser, so share the Meet tab\u2019s audio."},{id:"webex",name:"Webex",integration:"webex",tip:"Choose \u201CJoin from browser\u201D and share that tab, or use Microphone with the Webex app."},{id:"teams",name:"Microsoft Teams",integration:"teams",tip:"Open Teams in your browser and share that tab, or use Microphone with the Teams app."},{id:"other",name:"Other",integration:null,tip:"Any app works: share its browser tab, or use Microphone if it\u2019s a desktop or phone app."}],N=e=>T.find(t=>t.id===e)||T[T.length-1];async function be(e,t){let n=T.find(o=>o.integration===e)?.name||"this app";if(!t)return`Connecting ${n} needs the full Exemptia app running on a computer (see README). Share tab audio and Microphone work without it.`;let s=`/api/integrations/${e}/connect`;try{let o=await fetch(s,{redirect:"manual"});return o.status===501?(await o.json()).message:(window.open(s,"_blank","noopener"),`A ${n} sign-in page opened in a new tab. You choose what to allow there.`)}catch{return`Could not reach the Exemptia server to connect ${n}.`}}var a=e=>document.getElementById(e),h=e=>String(e??"").replace(/[&<>"']/g,t=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[t]),v=!0,Y=(()=>{try{return window.top!==window||"claude"in window}catch{return!0}})(),ut=v&&!Y&&window.isSecureContext!==!1,i={status:"idle",session:null,serverStatus:null,engine:f,audio:new S,stt:null,detector:null,inactivityMs:3*60*1e3,clockTimer:null,meterTimer:null,prevNoteKeys:new Set,activeTab:"notes",meetingApp:"zoom"};async function pt(){i.serverStatus=await me(),i.serverStatus&&(i.engine=de(i.serverStatus)),E("idle"),ht(),v&&window.claude?.use&&window.claude.use("sample").then(e=>{e&&(i.engine=fe(e))}).catch(()=>{})}function ht(){a("startBtn").onclick=xe,a("sourceForm").onsubmit=e=>{e.preventDefault(),ft()},a("sourceForm").addEventListener("change",Ce),a("connectApp").onclick=async()=>{let e=N(i.meetingApp);e.integration&&(a("connectMsg").textContent=await be(e.integration,!!i.serverStatus))},dt(),a("addTextBtn").onclick=F,a("lessonInput").addEventListener("keydown",e=>{e.key==="Enter"&&(e.ctrlKey||e.metaKey)&&(e.preventDefault(),F())}),a("lessonInput").addEventListener("input",()=>{clearTimeout(i.autoAddTimer),a("lessonInput").value.trim()&&(a("textHint").textContent="Listening\u2026 notes update when you pause.",i.autoAddTimer=setTimeout(F,2500))}),a("pauseBtn").onclick=()=>q("manual"),a("resumeBtn").onclick=ve,a("bannerResume").onclick=ve,a("endBtn").onclick=kt,a("doubtBtn").onclick=ke,a("endDoubtBtn").onclick=ke,a("doubtForm").onsubmit=e=>{e.preventDefault(),Ie(a("doubtInput").value)},document.querySelectorAll(".sheet [data-close]").forEach(e=>{e.addEventListener("click",()=>e.closest(".sheet").hidden=!0)}),document.addEventListener("keydown",e=>{e.key==="Escape"&&document.querySelectorAll(".sheet").forEach(t=>{t.hidden=!0})}),document.querySelectorAll(".tab").forEach(e=>{e.onclick=()=>_e(e.dataset.tab)}),a("copyBtn").onclick=Tt,a("downloadBtn").onclick=St,a("deleteBtn").onclick=$t,a("newClassBtn").onclick=()=>{De(),xe()},v&&(a("downloadBtn").hidden=!0)}function E(e){i.status=e;let t=a("statusPill"),n={idle:"\u25CB NOT LISTENING",active:"\u25CF TRANSCRIPTION ACTIVE","paused-auto":"\u25CB PAUSED \u2014 No class activity detected","paused-manual":"\u25CB PAUSED \u2014 Paused by you",ended:"\u25CB CLASS ENDED"}[e];a("statusText").textContent=n.replace(/^[●○]\s/,""),t.className=`status-pill ${e==="active"?"is-active":e.startsWith("paused")?"is-paused":e==="ended"?"is-ended":"is-idle"}`,t.setAttribute("aria-label",n),document.title=e==="active"?"\u25CF Listening \u2014 Exemptia":e.startsWith("paused")?"\u25CB Paused \u2014 Exemptia":"Exemptia";let s=e==="active";a("pauseBtn").hidden=!s,a("resumeBtn").hidden=!e.startsWith("paused"),a("autoPauseBanner").hidden=e!=="paused-auto",a("lessonInput").disabled=!s,a("addTextBtn").disabled=!s,s||(a("countdown").textContent="")}function xe(){let e=i.serverStatus,t=!v&&S.tabSupported()&&!!e?.serverSpeechToText&&L.supported(),n=(!v||ut)&&(C.supported()||S.micSupported()&&!!e?.serverSpeechToText);a("srcTab").disabled=!t,a("srcMic").disabled=!n,a("tabNote").textContent=t?"":v?"Available when you run Exemptia on your computer.":"Needs a speech-to-text key on the server (OPENAI_API_KEY or GOOGLE_API_KEY) and a desktop browser.",a("micNote").textContent=n?e?.serverSpeechToText?"":"Uses your browser\u2019s built-in speech recognition (Chrome sends this audio to Google to convert it to text). Play the class on another device \u2014 a call on this same phone blocks the microphone.":Y&&v?"Blocked inside the Claude app. Open the Exemptia phone file in Chrome instead, or run it on your computer.":"This browser has no speech recognition. Use Chrome (Android) or Safari (iPhone), or add a speech-to-text key on the server.",a(v?"srcText":"srcDemo").checked=!0,a("consent").checked=!1,a("connectMsg").textContent="",Ce(),a("sourceSheet").hidden=!1}function dt(){a("appChips").innerHTML=T.map(e=>`
+    <label class="app-chip"><input type="radio" name="meetingApp" value="${e.id}" ${e.id===i.meetingApp?"checked":""}><span>${h(e.name)}</span></label>`).join("")}function mt(){let e=document.querySelector('input[name="meetingApp"]:checked')?.value||"other";e!==i.meetingApp&&(a("connectMsg").textContent=""),i.meetingApp=e;let t=N(e);a("appTip").textContent=t.tip;let n=t.integration?i.serverStatus?.integrations?.[t.integration]:null;a("connectApp").hidden=!t.integration,a("connectApp").textContent=n?.configured?`Connect ${t.name} (official)`:`Connect ${t.name} (optional)`}function $e(){return document.querySelector('input[name="source"]:checked')?.value||"demo"}function Ce(){let e=$e();a("consentRow").hidden=e==="demo"||e==="text",a("appPick").hidden=e==="demo"||e==="text",mt(),a("goBtn").textContent={demo:"Start demo class",text:"Start my lesson",tab:"Choose class tab & start",mic:"Allow microphone & start"}[e],a("goBtn").disabled=(e==="tab"||e==="mic")&&!a("consent").checked}async function ft(){let e=$e();i.inactivityMs=e==="demo"?V:Number(a("inactivityMin").value)*60*1e3,i.session=ye({source:e,meetingApp:e==="demo"?null:i.meetingApp}),i.prevNoteKeys=new Set,a("sourceSheet").hidden=!0;let t=e==="demo"||e==="text"?"":`${N(i.meetingApp).id==="other"?"Meeting":N(i.meetingApp).name} \xB7 `;a("sourceLabel").textContent=t+{demo:"Demo class",text:"Your own lesson",tab:"tab audio",mic:"microphone"}[e],a("textEntry").hidden=e!=="text",a("classScreen").classList.toggle("mode-text",e==="text"),a("textHint").textContent="Speak or type \u2014 notes appear below by themselves when you pause.",a("lessonInput").value="",a("feed").innerHTML="",a("interim").textContent="",a("topicText").textContent="Listening for the topic\u2026",a("errorBanner").hidden=!0,G(null),Le(),Q("classScreen"),i.detector=new P({timeoutMs:i.inactivityMs,onInactive:()=>q("auto"),onTick:s=>{s<i.inactivityMs/2?a("countdown").textContent=`Quiet for a while \u2014 auto-pause in ${Se(s)}`:a("countdown").textContent=""}});let n=Date.now();clearInterval(i.clockTimer),i.clockTimer=setInterval(()=>{a("clock").textContent=Se(Date.now()-n)},1e3),await Ae()}async function Ae(){let e=i.session.source;try{if(e==="demo")i.stt=i.stt instanceof M?i.stt:new M({speed:1});else if(e==="text")i.stt=i.stt instanceof A?i.stt:new A;else if(e==="mic"&&!i.serverStatus?.serverSpeechToText)i.stt=new C;else{let t=e==="tab"?await i.audio.startTab():await i.audio.startMic();i.audio.onEnded=()=>q("manual"),i.stt=new L({stream:t,audioInput:i.audio}),Ct()}}catch(t){Te(J(t)),i.audio.stop(),E("paused-manual");return}i.stt.onText=yt,i.stt.onInterim=t=>{a("interim").textContent=t,(e==="demo"||i.stt instanceof C)&&(a("meterBar").style.width=t?`${35+Math.round(Math.random()*50)}%`:"0")},i.stt.onError=t=>{Te(t.message),t.fatal&&q("manual")},i.stt.onDone=()=>{a("interim").textContent="Demo lesson finished \u2014 press End class to see your notes."},a("errorBanner").hidden=!0,E("active"),i.stt.start(),i.detector.start(),Ee(e==="mic"||e==="tab")}async function Ee(e){try{e&&!i.wakeLock&&navigator.wakeLock&&(i.wakeLock=await navigator.wakeLock.request("screen")),!e&&i.wakeLock&&(await i.wakeLock.release(),i.wakeLock=null)}catch{i.wakeLock=null}}function B(){i.stt?.stop(),i.audio.stop(),i.detector?.stop(),Oe(),Ee(!1),a("interim").textContent=""}function q(e){i.status==="active"&&(B(),E(e==="auto"?"paused-auto":"paused-manual"))}function ve(){i.status.startsWith("paused")&&Ae()}function F(){clearTimeout(i.autoAddTimer);let e=a("lessonInput");i.stt instanceof A&&i.stt.submit(e.value)&&(e.value="",e.focus())}function yt(e){let t=i.session;if(!t)return;let{kept:n,droppedCount:s}=ne(e);t.sentences.push(...n),t.droppedCount+=s,n.length&&i.detector.heardMeaningfulSpeech();let o=a("feed");for(let r of n)o.insertAdjacentHTML("beforeend",`<li class="kept">${h(r)}</li>`);for(s&&o.insertAdjacentHTML("beforeend",`<li class="skipped">Skipped ${s===1?"1 off-topic line":`${s} off-topic lines`} (not saved)</li>`);o.children.length>40;)o.firstElementChild.remove();o.scrollTop=o.scrollHeight,Le(),n.length&&Me(),t.source==="text"&&(a("textHint").textContent=n.length?`Added ${n.length} ${n.length===1?"sentence":"sentences"} to your notes \u2193`:"That didn\u2019t look like lesson content (too short or chit-chat). Try a full sentence, like \u201CDemocracy is\u2026\u201D.",n.length&&gt())}async function gt(){if(!i.engine.liveNotes||!i.engine.usable)return;let e=i.session,t=i.aiTicket=(i.aiTicket||0)+1;a("textHint").textContent="Claude is improving your notes\u2026";let n=await i.engine.liveNotes(e.sentences,e.doubts.filter(s=>s.answer));t!==i.aiTicket||i.session!==e||i.status==="ended"||(a("textHint").textContent=n?"Notes improved by Claude. Keep going \u2014 speak or type more.":"Notes updated. Keep going \u2014 speak or type more.",n&&(e.notes=n,G(n)))}async function Me(){let e=i.session,t=await f.notes(e.sentences,e.doubts);e.notes=t,G(t)}function Le(){let e=i.session?.droppedCount||0;a("skippedCount").textContent=`${e} off-topic ${e===1?"line":"lines"} skipped and not saved.`}var wt=[["keyConcepts","Key Concepts"],["definitions","Important Definitions"],["formulas","Formulas"],["examples","Examples"],["importantPoints","Important Points"],["questions","Questions / Doubts"],["quickSummary","Quick Summary"]];function bt(e,t){return e==="definitions"?`<span class="term">${h(t.term)}</span> \u2014 ${h(t.meaning)}`:e==="formulas"?`<span class="formula-label">${h(t.label)}</span><code class="formula">${h(t.value)}</code>`:h(t)}function xt(e,t){return e+":"+(typeof t=="string"?t:t.term||t.value)}function z(e,{live:t=!1}={}){if(!e)return'<div class="note-sec"><p class="empty">Notes will appear here as the teacher explains things.</p></div>';let n=new Set,s=wt.filter(([o])=>{let r=e[o];return!t||(Array.isArray(r)?r.length:!!r)});return s.length?s.map(([o,r])=>{let l=e[o];if(o==="quickSummary")return`<section class="note-sec"><h3>${r}</h3>${l?`<p style="margin:0">${h(l)}</p>`:'<p class="empty">Builds up as the class goes on.</p>'}</section>`;let c=l||[],p=c.map(u=>{let d=xt(o,u),g=t&&!i.prevNoteKeys.has(d);return n.add(d),`<li class="${g?"fresh":""}">${bt(o,u)}</li>`}).join("");return t&&n.forEach(u=>i.prevNoteKeys.add(u)),`<section class="note-sec"><h3>${r}<span class="count">${c.length||""}</span></h3>${c.length?`<ul class="${o==="keyConcepts"?"concepts":""}">${p}</ul>`:'<p class="empty">Nothing yet.</p>'}</section>`}).join(""):z(null)}function G(e){a("liveNotes").innerHTML=z(e,{live:!0}),e?.topic&&(a("topicText").textContent=e.topic)}function ke(){a("doubtSheet").hidden=!1,K(),setTimeout(()=>a("doubtInput").focus(),50)}function vt(){let e=i.session;if(e.sentences.length)return e.sentences;let t=e.notes||{};return[...(t.definitions||[]).map(n=>`${n.term} is ${n.meaning}`),...t.importantPoints||[],...t.examples||[],...(t.formulas||[]).map(n=>`${n.label}: ${n.value}`)]}async function Ie(e){if(e=e.trim(),!e||!i.session)return;a("doubtInput").value="";let t=i.session,n={question:e,answer:null};t.doubts.push(n),K();let s=t.doubts.filter(o=>o.answer);n.answer=await i.engine.doubt(e,vt(),s),K(),i.status!=="ended"?Me():Pe()}function Ne(e){return e?`<div class="bubble-a">
+    <p>${h(e.explanation)}</p>
+    ${e.example?`<div class="part"><span class="label">Example</span><p>${h(e.example)}</p></div>`:""}
+    ${e.analogy?`<div class="part"><span class="label">Think of it like this</span><p>${h(e.analogy)}</p></div>`:""}
+    ${e.fromClass?.length?`<div class="part"><span class="label">From your class</span>${e.fromClass.map(t=>`<blockquote>${h(t)}</blockquote>`).join("")}</div>`:""}
+  </div>`:'<div class="bubble-a"><p class="thinking">Thinking it through\u2026</p></div>'}function K(){let e=i.session?.doubts||[];a("thread").innerHTML=e.length?e.map(s=>`<div class="bubble-q">${h(s.question)}</div>${Ne(s.answer)}`).join(""):'<p class="empty">Type any question about this class. You\u2019ll get a simple explanation, an example, and what your teacher said about it.</p>',a("thread").scrollTop=a("thread").scrollHeight;let t=e[e.length-1]?.answer,n=t?.followUps?.length?t.followUps:["Why does evaporation cause cooling?","Why are leaves green?"];a("suggestions").innerHTML=n.slice(0,3).map(s=>`<button type="button">${h(s)}</button>`).join(""),a("suggestions").querySelectorAll("button").forEach(s=>{s.onclick=()=>Ie(s.textContent)})}async function kt(){if(!i.session)return;B(),clearInterval(i.clockTimer),E("ended");let e=i.session;e.endedAt=Date.now(),a("endBtn").disabled=!0,a("endBtn").textContent="Making notes\u2026";let t=e.doubts.filter(o=>o.answer),n=i.engine.ai==="openai"?"AI":"offline";if(i.engine.finish){a("endBtn").textContent="Claude is writing\u2026";let o=await i.engine.finish(e.sentences,t);e.notes=o.notes,e.summary=o.summary,n=o.by==="claude"?"Claude":"offline"}else e.notes=await i.engine.notes(e.sentences,t),e.summary=await i.engine.summary(e.notes,t);ge(e),a("endBtn").disabled=!1,a("endBtn").textContent="End class",a("doubtSheet").hidden=!0;let s=Math.max(1,Math.round((e.endedAt-e.startedAt)/6e4));a("endMeta").textContent=`${new Date(e.startedAt).toLocaleDateString(void 0,{weekday:"short",day:"numeric",month:"short"})} \xB7 ${s} min \xB7 ${n==="offline"?"made offline":`polished by ${n}`}`,a("endTopic").innerHTML=`Topic: <span>${h(e.summary.topic||e.notes.topic||"Your class")}</span>`,a("endToast").textContent="",Q("endScreen"),_e("notes")}function _e(e){i.activeTab=e,document.querySelectorAll(".tab").forEach(t=>t.setAttribute("aria-selected",String(t.dataset.tab===e))),Pe()}function Pe(){let e=i.session;if(!e)return;let t=e.summary||{},n=o=>`<div class="card" style="padding:16px">${o}</div>`,s=a("tabPanel");if(i.activeTab==="notes")s.innerHTML=z({...e.notes,questions:e.doubts.length?e.doubts.map(o=>o.question):e.notes.questions},{live:!1});else if(i.activeTab==="summary")s.innerHTML=[n(`<span class="label">Class summary</span><p class="summary-lead">${h(t.classSummary)}</p>`),n(`<h3 style="margin-bottom:10px">Most important points</h3><ol class="points">${(t.topPoints||[]).map(o=>`<li><span>${h(o)}</span></li>`).join("")}</ol>`),t.definitions?.length?n(`<h3 style="margin-bottom:10px">Important definitions</h3><ul style="margin:0;padding-left:1.1em;display:grid;gap:6px">${t.definitions.map(o=>`<li><span class="term">${h(o.term)}</span> \u2014 ${h(o.meaning)}</li>`).join("")}</ul>`):"",t.formulasAndFacts?.length?n(`<h3 style="margin-bottom:10px">Formulas &amp; facts</h3>${t.formulasAndFacts.map(o=>`<div style="margin-bottom:8px"><span class="formula-label">${h(o.label)}</span><code class="formula">${h(o.value)}</code></div>`).join("")}`):""].join("");else if(i.activeTab==="doubts"){let o=e.doubts.filter(r=>r.answer);s.innerHTML=o.length?o.map(r=>n(`<div class="qa"><span class="q">${h(r.question)}</span>${Ne(r.answer)}</div>`)).join(""):n('<p class="empty" style="margin:0">You didn\u2019t ask any doubts in this class. Tap \u201CAsk a doubt\u201D below if something is still unclear.</p>')}else if(i.activeTab==="revision"){let o=t.revisionTopics||[];s.innerHTML=o.length?o.map(r=>n(`<div class="revise-item"><b>${h(r.topic)}</b><span class="tag">${h(r.reason)}</span></div>`)).join(""):n('<p class="empty" style="margin:0">Nothing flagged for revision.</p>')}else if(i.activeTab==="practice"){let o=t.practiceQuestions||[];s.innerHTML=o.length?o.map((r,l)=>n(`<div class="practice-card"><span class="tag">${h(r.type)}</span><b>${l+1}. ${h(r.question)}</b>
+          <button type="button" class="btn btn-small btn-ghost" data-reveal="${l}" style="justify-self:start">Show answer</button>
+          <p class="answer" id="ans${l}" hidden>${h(r.answer)}</p></div>`)).join(""):n('<p class="empty" style="margin:0">No practice questions this time.</p>'),s.querySelectorAll("[data-reveal]").forEach(r=>{r.onclick=()=>{let l=a(`ans${r.dataset.reveal}`);l.hidden=!l.hidden,r.textContent=l.hidden?"Show answer":"Hide answer"}})}}async function Tt(){let e=H(i.session);try{await navigator.clipboard.writeText(e),a("endToast").textContent="Notes copied. Paste them into your notebook app."}catch{a("tabPanel").innerHTML=`<p class="small">Copy didn\u2019t work here \u2014 select the text below and copy it.</p><textarea style="width:100%;min-height:300px" readonly>${h(e)}</textarea>`,a("tabPanel").querySelector("textarea").select()}}function St(){let e=i.session,t=new Blob([H(e)],{type:"text/markdown"}),n=document.createElement("a");n.href=URL.createObjectURL(t),n.download=`${(e.notes?.topic||"class-notes").toLowerCase().replace(/[^a-z0-9]+/g,"-")}.md`,n.click(),setTimeout(()=>URL.revokeObjectURL(n.href),1e3),a("endToast").textContent="Saved to your device."}function $t(){let e=document.createElement("div");e.className="confirm-row",e.innerHTML='<span>Delete these notes, doubts and summary for good?</span><button class="btn btn-small btn-danger" type="button">Yes, delete</button><button class="btn btn-small btn-ghost" type="button">Keep</button>',a("endToast").replaceChildren(e);let[t,n]=e.querySelectorAll("button");t.onclick=()=>{De()},n.onclick=()=>{a("endToast").textContent=""}}function De(){B(),clearInterval(i.clockTimer),we(i.session),i.session=null,i.stt=null,a("liveNotes").innerHTML="",a("tabPanel").innerHTML="",a("thread").innerHTML="",a("endToast").textContent="",E("idle"),Q("home")}function Q(e){for(let t of["home","classScreen","endScreen"])a(t).hidden=t!==e;window.scrollTo({top:0})}function Te(e){a("errorBanner").textContent=e,a("errorBanner").hidden=!1}function Ct(){Oe(),i.meterTimer=setInterval(()=>{a("meterBar").style.width=`${Math.round(i.audio.level()*100)}%`},120)}function Oe(){clearInterval(i.meterTimer),a("meterBar").style.width="0"}function Se(e){let t=Math.max(0,Math.round(e/1e3));return`${String(Math.floor(t/60)).padStart(2,"0")}:${String(t%60).padStart(2,"0")}`}function At(){if(Y){a("appLinks").hidden=!0;return}"serviceWorker"in navigator&&/^https?:$/.test(location.protocol)&&navigator.serviceWorker.register("sw.js").catch(()=>{}),window.addEventListener("beforeinstallprompt",e=>{e.preventDefault(),i.installPrompt=e,a("installCard").hidden=!1}),a("installBtn").onclick=async()=>{i.installPrompt&&(i.installPrompt.prompt(),await i.installPrompt.userChoice.catch(()=>{}),i.installPrompt=null,a("installCard").hidden=!0)},window.addEventListener("appinstalled",()=>{a("installCard").hidden=!0})}At();window.addEventListener("pagehide",B);pt();})();
+
+</script>
+
+</body>
+</html>
